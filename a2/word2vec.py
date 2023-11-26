@@ -18,11 +18,11 @@ def sigmoid(x):
     """
 
     ### YOUR CODE HERE (~1 Line)
+    s = 1 / (1 + np.exp(-x))
 
     ### END YOUR CODE
 
     return s
-
 
 def naiveSoftmaxLossAndGradient(
     centerWordVec,
@@ -64,10 +64,38 @@ def naiveSoftmaxLossAndGradient(
     ### Please use the provided softmax function (imported earlier in this file)
     ### This numerically stable implementation helps you avoid issues pertaining
     ### to integer overflow. 
+    
+    gradOutsideVecs = np.zeros_like(outsideVectors)
+    # obtain y_hat (i.e., the conditional probability distribution p(O = o | C = c))
+    # by taking vector dot products and applying softmax
+    y_hat = softmax(np.dot(outsideVectors, centerWordVec)) # (N,) N x 1
+    # can also get y_hat in a single line: y_hat = softmax(outsideVectors @ centerWordVec)
+
+    # for a single pair of words c and o, the loss is given by:
+    # J(v_c, o, U) = -log P(O = o | C = c) = -log [y_hat[o]]
+    loss = -np.log(y_hat[outsideWordIdx])
+
+    # grad calc
+    # generate the ground-truth one-hot vector, [..., 0, outsideWordIdx=1, 0, ...]
+    y = np.zeros_like(y_hat)
+    y[outsideWordIdx] = 1
+    # can also get loss as -np.dot(y, np.log(y_hat))    
+    
+    gradCenterVec = np.dot(y_hat - y, outsideVectors) # inner product results in a scalar
+    # or gradCenterVec = np.dot(outsideVectors.T, y_hat - y)
+    
+    gradOutsideVecs = np.outer(y_hat - y, centerWordVec) # outer product results in a matrix
+    # or gradOutsideVecs = np.dot((y_hat - y)[:, np.newaxis], centerWordVec[np.newaxis, :]) 
+    
+    # sanity check the dimensions
+    assert gradCenterVec.shape == centerWordVec.shape
+    assert gradOutsideVecs.shape == outsideVectors.shape  
 
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
+
+
 
 
 def getNegativeSamples(outsideWordIdx, dataset, K):

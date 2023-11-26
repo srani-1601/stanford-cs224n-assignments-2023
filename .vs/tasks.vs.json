@@ -1,0 +1,10 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "task-softmax",
+      "appliesTo": "a2/methods/softmax.py",
+      "type": "launch"
+    }
+  ]
+}
